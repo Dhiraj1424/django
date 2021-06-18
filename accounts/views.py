@@ -1,7 +1,11 @@
+from django.contrib.auth.forms import UserCreationForm
 from django.db.models import query
 from django.shortcuts import render, redirect
 from .models import *
 from .forms import OrderForm
+from .forms import CreateUserForm
+from django.contrib import messages
+
 
 # Create your views here.
 # yo chali inline formset ko lagi
@@ -10,6 +14,32 @@ from django.forms import inlineformset_factory
 
 # import filter
 from.filters import *
+
+# for register // django gives a default furms we use that
+
+
+def registerPage(request):
+    form = CreateUserForm()
+
+    if request.method == 'POST':
+        form = CreateUserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            user = form.cleaned_data.get('username')
+            messages.success(request, 'sucess fully creae .' + user)
+
+            # user=form.cleaned_data.get('usename')
+            # messages.success(request,'message are sucess fully created'+ user)
+            return redirect('login')
+    context = {
+        'form': form
+    }
+    return render(request, 'accounts/register.html', context)
+
+
+def loginPage(request):
+    context = {}
+    return render(request, 'accounts/login.html', context)
 
 
 def home(request):
@@ -37,18 +67,17 @@ def products(request):
 
 def customer(request, pk_test):
     customer = Customer.objects.get(id=pk_test)
-#query all the order
+# query all the order
     orders = customer.order_set.all()
     order_count = orders.count()
-    # query order and through in  filter base on what request data is we filter on down we 
-    #have request.get 
-    myFilter=OrderFilter(request.GET,queryset=orders)
-    orders=myFilter.qs
-
+    # query order and through in  filter base on what request data is we filter on down we
+    # have request.get
+    myFilter = OrderFilter(request.GET, queryset=orders)
+    orders = myFilter.qs
 
     context = {'customer': customer,
                'orders': orders, 'order_count': order_count,
-               'myFilter':myFilter}
+               'myFilter': myFilter}
     return render(request, 'accounts/customer.html', context)
 
 
@@ -64,7 +93,7 @@ def navbar(request):
 #         # print('pricing post',request.POST)
 #         # Create a form instance from POST data.
 
-#         # request.POST le new item create garxa
+#         # request.POST le new item create garxa form ma orderForm ma new it rakera post garna help garxa
 #         form = OrderForm(request.POST)
 #         if form.is_valid():
 #             form.save()
@@ -124,19 +153,19 @@ def deleteOrder(request, pk):
 #     return render(request, 'accounts/order_form.html', context)
 
 
-
 def createOrder(request, pk):
-    OrderFormSet = inlineformset_factory(Customer, Order, fields=('product', 'status'), extra=10 )
+    OrderFormSet = inlineformset_factory(
+        Customer, Order, fields=('product', 'status'), extra=10)
     customer = Customer.objects.get(id=pk)
-    formset = OrderFormSet(queryset=Order.objects.none(),instance=customer)
-	#form = OrderForm(initial={'customer':customer})
+    formset = OrderFormSet(queryset=Order.objects.none(), instance=customer)
+    #form = OrderForm(initial={'customer':customer})
     if request.method == 'POST':
-		#print('Printing POST:', request.POST)
-		#form = OrderForm(request.POST)
-	    formset = OrderFormSet(request.POST, instance=customer)
-	    if formset.is_valid():
-		    formset.save()
-		    return redirect('/')
+        #print('Printing POST:', request.POST)
+        #form = OrderForm(request.POST)
+        formset = OrderFormSet(request.POST, instance=customer)
+        if formset.is_valid():
+            formset.save()
+            return redirect('/')
 
-    context = {'form':formset}
+    context = {'form': formset}
     return render(request, 'accounts/order_form.html', context)
