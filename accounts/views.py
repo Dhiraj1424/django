@@ -3,6 +3,9 @@ from .models import *
 from .forms import OrderForm
 
 # Create your views here.
+# yo chali inline formset ko lagi
+
+from django.forms import inlineformset_factory
 
 
 def home(request):
@@ -43,23 +46,22 @@ def navbar(request):
     return render(request, 'accounts/navbar.html')
 
 
-def createOrder(request):
-    # orderform chai forms.py ma xa ra yes lai mathi import garna parxa
-    
-    form = OrderForm()
-    if request.method == 'POST':
-        # print('pricing post',request.POST)
-        # Create a form instance from POST data.
+# def createOrder(request):
+#     # orderform chai forms.py ma xa ra yes lai mathi import garna parxa
 
-        # request.POST le new item create garxa
-        form = OrderForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('/')
+#     form = OrderForm()
+#     if request.method == 'POST':
+#         # print('pricing post',request.POST)
+#         # Create a form instance from POST data.
 
-    context = {'form': form}
-    return render(request, 'accounts/order_form.html', context)
-    
+#         # request.POST le new item create garxa
+#         form = OrderForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('/')
+
+#     context = {'form': form}
+#     return render(request, 'accounts/order_form.html', context)
 
 
 def updateOrder(request, pk):
@@ -89,19 +91,42 @@ def deleteOrder(request, pk):
     }
     return render(request, 'accounts/delete.html', context)
 
-# def creatOrder(request,pk):
-#     customer=Customer.objects.get(id=pk)
-#     #initial rakda form a dictionary ma j pass gareko xau tyo dekhau xaa
-#     #inital is a instance
-#     form=OrderForm(initial={'customer':customer})
-    
-    
-#     if request.method=='POST':
-#         form=OrderForm(request.POST)
-        
-#         if form.is_valid():
-#             form.save()
+
+# def creatOrder(request, pk):
+#     # Customer is parent and child is order aand product and status are fields of child
+#     # we allowed
+#     OrderFormSet = inlineformset_factory(Customer, Order, fields=('product', 'status'), extra=10 )
+#     customer = Customer.objects.get(id=pk)
+#     formset = OrderFormSet(instance=customer)
+#     # initial rakda form a dictionary ma j pass gareko xau tyo dekhau xaa
+#     # inital is a instance
+#     # form=OrderForm(initial={'customer':customer})
+
+#     if request.method == 'POST':
+#         # form=OrderForm(request.POST)
+#         formset = OrderFormSet(request.POST, instance=customer)
+
+#         if formset.is_valid():
+#             formset.save()
 #             return redirect('/')
 
-#     context = {'form': form}
+#     context = {'formset': formset}
 #     return render(request, 'accounts/order_form.html', context)
+
+
+
+def createOrder(request, pk):
+    OrderFormSet = inlineformset_factory(Customer, Order, fields=('product', 'status'), extra=10 )
+    customer = Customer.objects.get(id=pk)
+    formset = OrderFormSet(queryset=Order.objects.none(),instance=customer)
+	#form = OrderForm(initial={'customer':customer})
+    if request.method == 'POST':
+		#print('Printing POST:', request.POST)
+		#form = OrderForm(request.POST)
+	    formset = OrderFormSet(request.POST, instance=customer)
+	    if formset.is_valid():
+		    formset.save()
+		    return redirect('/')
+
+    context = {'form':formset}
+    return render(request, 'accounts/order_form.html', context)

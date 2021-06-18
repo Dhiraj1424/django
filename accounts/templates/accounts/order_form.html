@@ -5,12 +5,23 @@
 
 
 
-<form action="" method="POST">
-{% csrf_token %}
-{{form}}
+<div class="row">
+	<div class="col-md-6">
+		<div class="card card-body">
 
+			<form action="" method="POST">
+				{% csrf_token %}
+				{{ form.management_form }}
+				{% for field in form %}
+					{{field}}
+					<hr>
+				{% endfor %}
+				
+				<input type="submit" name="Submit">
+			</form>
 
-<button type="submit">submit</button>
-</form>
+		</div>
+	</div>
+</div>
 
 {% endblock %}
