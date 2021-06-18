@@ -1,3 +1,4 @@
+from django.db.models import query
 from django.shortcuts import render, redirect
 from .models import *
 from .forms import OrderForm
@@ -6,6 +7,9 @@ from .forms import OrderForm
 # yo chali inline formset ko lagi
 
 from django.forms import inlineformset_factory
+
+# import filter
+from.filters import *
 
 
 def home(request):
@@ -33,12 +37,18 @@ def products(request):
 
 def customer(request, pk_test):
     customer = Customer.objects.get(id=pk_test)
-
+#query all the order
     orders = customer.order_set.all()
     order_count = orders.count()
+    # query order and through in  filter base on what request data is we filter on down we 
+    #have request.get 
+    myFilter=OrderFilter(request.GET,queryset=orders)
+    orders=myFilter.qs
+
 
     context = {'customer': customer,
-               'orders': orders, 'order_count': order_count}
+               'orders': orders, 'order_count': order_count,
+               'myFilter':myFilter}
     return render(request, 'accounts/customer.html', context)
 
 
